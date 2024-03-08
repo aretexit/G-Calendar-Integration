@@ -14,8 +14,8 @@ const MyCalendar = () => {
       if (session) {
         console.log(session.token.access_token);
         const accessToken = session.token.access_token;
-
         const eventList = await listEvents(accessToken);
+        console.log(eventList);
         setEvents(eventList);
       }
     };
@@ -27,11 +27,21 @@ const MyCalendar = () => {
   };
 
   return (
-    <div>
+    <div className='w-full flex justify-center items-center flex-col'>
       <h1>Calendars</h1>
       My Calendar
       <Calendar events={events} />
-      <button onClick={() => handleSignOut()}>Sign out</button>
+      <button
+        className='border rounded-xl p-3 my-2'
+        onClick={() => handleSignOut()}
+      >
+        {events.length > 0 ? (
+          events.map((event, index) => <div key={index}>{event.summary}</div>)
+        ) : (
+          <div>No event Available</div>
+        )}
+        Sign out
+      </button>
     </div>
   );
 };

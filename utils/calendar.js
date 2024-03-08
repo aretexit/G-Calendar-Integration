@@ -1,9 +1,10 @@
 import axios from "axios";
 
+
 export async function listEvents(accessToken) {
   try {
     const response = await axios.get(
-      "https://www.googleapis.com/calendar/v3/calendars/primary/events",
+      `https://www.googleapis.com/calendar/v3/calendars/primary/events`,
       {
         headers: {
           Authorization: `Bearer ${accessToken}`,
@@ -23,3 +24,4 @@ export async function listEvents(accessToken) {
     return [];
   }
 }
+

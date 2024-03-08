@@ -6,28 +6,24 @@ const handler = NextAuth({
     Providers({
       clientId: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      authorizationUrl:
-        "https://accounts.google.com/o/oauth2/auth?prompt=consent&access_type=offline&response_type=code",
-      scopes: [
-        "https://www.googleapis.com/auth/userinfo.email",
-        "https://www.googleapis.com/auth/userinfo.profile",
-        "https://www.googleapis.com/auth/calendar.readonly",
-        "https://www.googleapis.com/auth/calendar",
-        "https://www.googleapis.com/auth/calendar.events",
-      ],
+      access_type: "offline",
+      authorization: {
+        params: {
+          scope:
+            "https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile",
+        },
+      },
     }),
   ],
-
+  secret: process.env.NEXTAUTH_SECRET,
   callbacks: {
-    async jwt({ token, user, account }) {
+    async jwt({ token, user, account, profile }) {
       if (user) {
-        token = { ...user, ...account };
+        token = { ...user, ...account, ...profile };
       }
       return token;
     },
     async session(session, token) {
-      console.log("Token in session callback:", token);
-
       if (token) {
         session.user = token;
       }
