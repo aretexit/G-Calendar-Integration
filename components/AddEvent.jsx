@@ -1,12 +1,14 @@
 "use client";
 import { createEvent } from "@/utils/calendar";
 import React, { useState } from "react";
-
 const AddEvent = ({ session, setEvents, events }) => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [startDate, setStartDate] = useState(new Date());
   const [endDate, setEndDate] = useState(new Date());
+  const [guestEmail, setGuestEmail] = useState("");
+  const [guests, setGuests] = useState([]);
+
   const handleUpdateEvent = (newEvent) => {
     setEvents([...events, newEvent]);
   };
@@ -20,7 +22,8 @@ const AddEvent = ({ session, setEvents, events }) => {
           title,
           description,
           startDate,
-          endDate
+          endDate,
+          guests
         );
         handleUpdateEvent(newEvent);
         setTitle("");
@@ -29,6 +32,11 @@ const AddEvent = ({ session, setEvents, events }) => {
         console.error("Error creating event:", error);
       }
     }
+  };
+  const handleAddGuest = (data) => {
+    setGuests([...guests, { email: data }]);
+    console.log(guests);
+    setGuestEmail("");
   };
   return (
     <div className='border p-3 mt-3 rounded-xl'>
@@ -67,6 +75,30 @@ const AddEvent = ({ session, setEvents, events }) => {
             onChange={(e) => setEndDate(new Date(e.target.value))}
           />
         </label>
+        <div className='w-full '>
+          <label>Guests:</label>
+          {guests.map((guest, index) => (
+            <div key={index} className='flex flex-wrap gap-x-2'>
+              <p className='p-1 border border-orange-500 rounded-xl'>
+                {guest?.email}
+              </p>
+            </div>
+          ))}
+          <input
+            className='w-full border p-2 rounded-xl'
+            type='text'
+            value={guestEmail}
+            onChange={(e) => setGuestEmail(e.target.value)}
+            list='guestsList'
+          />
+          <button
+            type='button'
+            className='p-2 border border-blue-500 rounded-xl'
+            onClick={() => handleAddGuest(guestEmail)}
+          >
+            Add guests
+          </button>
+        </div>
         <button
           className='border p-3 rounded-xl'
           type='button'

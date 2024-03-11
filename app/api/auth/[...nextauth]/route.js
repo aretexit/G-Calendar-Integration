@@ -1,5 +1,7 @@
 import NextAuth from "next-auth";
 import Providers from "next-auth/providers/google";
+import { atom, useAtom, useSetAtom } from "jotai";
+import { userSession } from "@/app/store/CalendarStore";
 
 const handler = NextAuth({
   providers: [
@@ -10,7 +12,7 @@ const handler = NextAuth({
       authorization: {
         params: {
           scope:
-            "https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile",
+            "https://www.googleapis.com/auth/calendar  https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile",
         },
       },
     }),

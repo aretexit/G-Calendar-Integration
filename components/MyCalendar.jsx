@@ -1,6 +1,6 @@
 "use client";
 
-import { listEvents } from "@/utils/calendar";
+import { deleteEvent, listEvents } from "@/utils/calendar";
 import { useState, useEffect } from "react";
 import { signOut, useSession } from "next-auth/react";
 import AddEvent from "./AddEvent";
@@ -8,6 +8,8 @@ import { Calendar, momentLocalizer } from "react-big-calendar";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import moment from "moment";
 import { useRouter } from "next/navigation";
+// import { atom, useAtom, useSetAtom } from "jotai";
+// import { eventsAtom, userSession } from "@/app/store/CalendarStore";
 
 const localizer = momentLocalizer(moment);
 
@@ -15,6 +17,12 @@ const MyCalendar = () => {
   const { data: session } = useSession();
   const [events, setEvents] = useState([]);
   const router = useRouter();
+  // const [eventAtoms, setEventAtoms] = useAtom(eventsAtom);
+  // const setSession = useSetAtom(userSession);
+  // if (session) {
+  //   const initialsessionAtom = atom(session.token.access_token);
+  //   setSession(initialsessionAtom);
+  // }
 
   useEffect(() => {
     const fetchData = async () => {
@@ -35,6 +43,17 @@ const MyCalendar = () => {
   };
   const handleEvents = (newEvent) => {
     setEvents(newEvent);
+  };
+  const deleteEvents = async (id) => {
+    if (session) {
+      try {
+        const accessToken = session.token.access_token;
+        const updatedEvents = await deleteEvent(accessToken, id);
+        console.log(updatedEvents);
+      } catch (error) {
+        console.log("Error deleting: ", error);
+      }
+    }
   };
 
   return (
@@ -57,7 +76,7 @@ const MyCalendar = () => {
           endAccessor='end'
         />
       </div>
-      <div className='flex w-full justify-center gap-x-4 items-center'>
+      <div className='flex flex-col w-full justify-center gap-x-4 items-center'>
         <AddEvent session={session} events={events} setEvents={handleEvents} />
         <div>
           {" "}
@@ -71,6 +90,12 @@ const MyCalendar = () => {
                   {event?.summary}
                 </p>
                 <p>{event?.description}</p>
+                <button
+                  onClick={() => deleteEvents(event?.id)}
+                  className='p-2 border rounded border-red-500 text-red-500'
+                >
+                  Delete
+                </button>
               </div>
             ))
           ) : (
