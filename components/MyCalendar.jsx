@@ -15,6 +15,7 @@ const localizer = momentLocalizer(moment);
 
 const MyCalendar = () => {
   const { data: session } = useSession();
+  const [error, setError] = useState("");
   const [events, setEvents] = useState([]);
   const router = useRouter();
   // const [eventAtoms, setEventAtoms] = useAtom(eventsAtom);
@@ -29,9 +30,13 @@ const MyCalendar = () => {
       if (session) {
         console.log(session.token.access_token);
         const accessToken = session.token.access_token;
-        const eventList = await listEvents(accessToken);
-        console.log(eventList);
-        setEvents(eventList);
+        try {
+          const eventList = await listEvents(accessToken);
+          console.log(eventList);
+          setEvents(eventList);
+        } catch (error) {
+          console.log("error: ", error.message);
+        }
       }
     };
 
@@ -78,18 +83,24 @@ const MyCalendar = () => {
       </div>
       <div className='flex flex-col w-full justify-center gap-x-4 items-center'>
         <AddEvent session={session} events={events} setEvents={handleEvents} />
-        <div>
+        <div className='w-full flex flex-wrap gap-x-2'>
           {" "}
           {events.length > 0 ? (
             events.map((event, index) => (
               <div
-                className='border p-2 rounded-xl flex flex-col justify-start items-center'
+                className='border p-2 rounded-xl flex flex-col justify-start items-center '
                 key={index}
               >
-                <p className='w-full border-b text-xl font-medium text-center'>
+                <p
+                  className={`w-full border-b text-xl font-medium text-center ${
+                    event?.organizer?.displayName ===
+                      "Holidays in Philippines" && "bg-gray-300 bg-opacity-15"
+                  }`}
+                >
                   {event?.summary}
                 </p>
                 <p>{event?.description}</p>
+                <p>{event?.start?.date}</p>
                 <button
                   onClick={() => deleteEvents(event?.id)}
                   className='p-2 border rounded border-red-500 text-red-500'
