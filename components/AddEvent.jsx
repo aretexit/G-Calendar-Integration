@@ -5,17 +5,20 @@ import { TbFileDescription } from "react-icons/tb";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import CustomRecurrence from "@/app/calendar/components/CustomRecurrence";
+import { getRecurrenceRule } from "@/app/calendar/components/calendarFunctions";
+import { addHours } from "date-fns";
 
 const AddEvent = ({ session, setEvents, events }) => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [startDate, setStartDate] = useState(new Date());
   // const endD = startDate.setHours(startDate.getHours() + 1);
-  const [endDate, setEndDate] = useState(new Date());
+  const [endDate, setEndDate] = useState(addHours(new Date(), 1));
   const [guestEmail, setGuestEmail] = useState("");
   const [guests, setGuests] = useState([]);
   const [withConference, setWithConference] = useState(false);
   const [recurrence, setRecurrence] = useState("");
+  const [customRrule, setCustomRrule] = useState("");
   const [repeatNo, setRepeatNo] = useState(1);
   const [repeatWeek, setRepeakWeek] = useState();
   //regex
@@ -39,6 +42,7 @@ const AddEvent = ({ session, setEvents, events }) => {
   const handleCreateEvent = async () => {
     if (session) {
       try {
+        const Rrule = getRecurrenceRule(recurrence, customRrule);
         const accessToken = session.token.access_token;
         const newEvent = await createEvent(
           accessToken,
@@ -47,13 +51,15 @@ const AddEvent = ({ session, setEvents, events }) => {
           startDate,
           endDate,
           guests,
-          withConference
+          withConference,
+          Rrule
         );
         handleUpdateEvent(newEvent);
         setTitle("");
         setDescription("");
       } catch (error) {
         console.error("Error creating event:", error);
+        alert(error.response.data.error.message);
       }
     }
   };
@@ -72,6 +78,18 @@ const AddEvent = ({ session, setEvents, events }) => {
       setGuestEmail("");
     }
   };
+  const handleCustomRrule = (data) => {
+    console.log("data", data);
+    setCustomRrule(data);
+  };
+  // const handleRrule = (data, customUrl) => {
+  //   if (data === "") {
+  //     return "";
+  //   } else {
+  //     const rule = getRecurrenceRule(data, customUrl);
+  //     return rule;
+  //   }
+  // };
   return (
     <div className='border p-3 mt-3 rounded-xl w-[500px]'>
       <h2 className='text-xl font-semibold text-center'>Create Event</h2>
@@ -98,20 +116,38 @@ const AddEvent = ({ session, setEvents, events }) => {
           <p className='font-semibold'>Event Date</p>
           <div className='w-full flex flex-row justify-between items-center pl-2'>
             <label className='w-32'>Start Date:</label>
-            <input
+            {/* <input
               type='datetime-local'
               className='border w-full p-1 rounded-lg text-gray-500'
               value={startDate.toISOString().slice(0, 16)}
               onChange={(e) => setStartDate(new Date(e.target.value))}
+            /> */}
+            <DatePicker
+              selected={startDate}
+              onChange={(date) => setStartDate(date)}
+              showTimeSelect
+              timeFormat='HH:mm'
+              dateFormat='yyyy-MM-dd HH:mm'
+              className='border w-full p-1 rounded-lg text-gray-500'
             />
           </div>
           <div className='w-full flex flex-row justify-between pl-2'>
             <label className='w-32'>End Date:</label>
-            <input
+            {/* <input
               type='datetime-local'
               className='border w-full p-1 rounded-lg text-gray-500'
               value={endDate.toISOString().slice(0, 16)}
               onChange={(e) => setEndDate(new Date(e.target.value))}
+            /> */}
+            <DatePicker
+              selected={endDate}
+              onChange={(date) => setEndDate(date)}
+              showTimeSelect
+              timeFormat='HH:mm'
+              timeIntervals={15}
+              timeCaption='time'
+              dateFormat='yyyy-MM-dd HH:mm'
+              className='border w-full p-1 rounded-lg text-gray-500'
             />
           </div>
 
@@ -130,7 +166,9 @@ const AddEvent = ({ session, setEvents, events }) => {
               <option value='custom'>Custom</option>
             </select>
           </div>
-          {recurrence === "custom" && <CustomRecurrence />}
+          {recurrence === "custom" && (
+            <CustomRecurrence setCustomRrule={handleCustomRrule} />
+          )}
         </div>
         <div className='w-full '>
           <label className='font-semibold'>Guests:</label>

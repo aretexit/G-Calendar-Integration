@@ -1,4 +1,4 @@
-export const getRecurrenceRule = (selectedRecurrence) => {
+export const getRecurrenceRule = (selectedRecurrence, customRrule) => {
   switch (selectedRecurrence) {
     case "DAILY":
       return "RRULE:FREQ=DAILY;COUNT=5";
@@ -9,7 +9,7 @@ export const getRecurrenceRule = (selectedRecurrence) => {
     case "YEARLY":
       return "RRULE:FREQ=YEARLY;COUNT=5;";
     case "custom":
-      return "RRULE:FREQ=WEEKLY;COUNT=5;BYDAY=MO,WE,FR";
+      return customRrule;
     default:
       return null;
   }

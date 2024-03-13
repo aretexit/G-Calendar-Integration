@@ -46,7 +46,8 @@ export async function createEvent(
   startDate,
   endData,
   guests,
-  withConference
+  withConference,
+  Rrule
 ) {
   try {
     let conferenceID = "";
@@ -80,7 +81,7 @@ export async function createEvent(
         reminders: {
           useDefault: true,
         },
-        recurrence: ["RRULE:FREQ=MONTHLY;COUNT=3;"],
+        recurrence: [Rrule],
       },
       {
         headers: {
@@ -103,18 +104,21 @@ export async function createEvent(
   }
 }
 
-export async function deleteEvent(accessToken, id) {
+export async function deleteEvent(accessToken, id, recurring, recurringId) {
   try {
-    const response = await axios.delete(
-      `https://www.googleapis.com/calendar/v3/calendars/primary/events/${id}`,
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
-    console.log("Event created successfully:", response.data);
+    let url = `https://www.googleapis.com/calendar/v3/calendars/primary/events/${id}`;
+    const eventParams = {
+      sendUpdates: "all",
+      recurrence: recurring ? "all" : "none",
+    };
+    const response = await axios.delete(url, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+      params: eventParams,
+    });
+    console.log("Event(s) created successfully:", response.data);
     return response.data;
   } catch (error) {
     console.error("Error deleting Google Calendar event: ", error);
