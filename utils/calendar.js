@@ -1,5 +1,6 @@
 import axios from "axios";
 import { v4 as uuid } from "uuid";
+import { addHours, format } from "date-fns";
 
 export async function listEvents(accessToken) {
   try {
@@ -28,10 +29,44 @@ export async function listEvents(accessToken) {
         Authorization: `Bearer ${accessToken}`,
       },
     });
+    const defaultResponse = response.data.items.map((res) => ({
+      id: res.id,
+      title: res.summary,
+      start: new Date(format(res.start.dateTime, "yyyy/MM/dd HH:mm:ss")),
+      end: new Date(format(res.end.dateTime, "yyyy/MM/dd HH:mm:ss")),
+      allDay: false,
+      desc: res.description,
+      data: res,
+      type: res.organizer.displayName,
+    }));
+    const PHHolidayResponse = PHHoliday.data.items.map((res) => ({
+      id: res.id,
+      title: res.summary,
+      start: new Date(format(res.start.date, "yyyy/MM/dd HH:mm:ss")),
+      end: new Date(format(res.end.date, "yyyy/MM/dd HH:mm:ss")),
+      allDay: false,
+      desc: res.description,
+      data: res,
+      type: res.organizer.displayName,
+    }));
+    const AUHolidayResponse = AUHoliday.data.items.map((res) => ({
+      id: res.id,
+      title: res.summary,
+      start: new Date(format(res.start.date, "yyyy/MM/dd HH:mm:ss")),
+      end: new Date(format(res.end.date, "yyyy/MM/dd HH:mm:ss")),
+      allDay: false,
+      desc: res.description,
+      data: res,
+      type: res.organizer.displayName,
+    }));
+    console.log("Defaukt: ", PHHolidayResponse);
     const returnedItems = [
-      ...response.data.items,
-      ...PHHoliday.data.items,
-      ...AUHoliday.data.items,
+      ...defaultResponse,
+      ...PHHolidayResponse,
+      ...AUHolidayResponse,
+      // ...response.data.items,
+      // ...PHHoliday.data.items,
+      // ...AUHoliday.data.items,
     ];
     return returnedItems || [];
   } catch (error) {
@@ -39,6 +74,7 @@ export async function listEvents(accessToken) {
     throw error;
   }
 }
+
 export async function createEvent(
   accessToken,
   title,
@@ -95,9 +131,23 @@ export async function createEvent(
         },
       }
     );
-
-    console.log("Event Created:", response.data);
-    return response.data;
+    console.log("Ecent Created: ", response);
+    const defaultResponse = {
+      id: response.data.id,
+      title: response.data.summary,
+      start: new Date(
+        format(response.data.start.dateTime, "yyyy/MM/dd HH:mm:ss")
+      ),
+      end: addHours(
+        new Date(format(response.data.end.dateTime, "yyyy/MM/dd HH:mm:ss")),
+        -1
+      ),
+      allDay: false,
+      desc: response.data.description,
+      data: response.data,
+      type: response.data.organizer.displayName,
+    };
+    return defaultResponse;
   } catch (error) {
     console.error("Error creating Google Calendar event:", error);
     throw error;
