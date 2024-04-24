@@ -5,8 +5,7 @@ export default function Home() {
   return (
     <div>
       <div>
-        <h1>Next.js Google Calendar API Integration</h1>
-      <Login />
+        <Login />
       </div>
     </div>
   );

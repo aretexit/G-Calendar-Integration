@@ -1,6 +1,7 @@
 "use client";
 import React, { useState } from "react";
-import { addMonths } from "date-fns";
+import { addMonths, format } from "date-fns";
+import DatePicker from "react-datepicker";
 
 const CustomRecurrence = ({ setCustomRrule }) => {
   const dateToday = new Date();
@@ -27,7 +28,9 @@ const CustomRecurrence = ({ setCustomRrule }) => {
       const type = customRepeatType.toUpperCase();
       const byDayString = byDay.toString();
       const ends =
-        customEnds === "ends" ? `;UNTIL=${customEndDate.toISOString()}` : "";
+        customEnds === "ends"
+          ? `;UNTIL=${format(customEndDate, "yyyyMMdd'T'HHmmss'Z'")}`
+          : "";
       const count =
         customEnds === "after" ? `;COUNT=${customRecurrenceNo}` : "";
       const byday = type === "WEEKLY" ? `;BYDAY=${byDayString}` : "";
@@ -51,7 +54,7 @@ const CustomRecurrence = ({ setCustomRrule }) => {
         <span className='text-gray-500'>Repeat Every : </span>
 
         <select
-          className='border p-1 rounded-lg'
+          className='border p-1 rounded-lg text-gray-500'
           value={customRepeatType}
           onChange={(e) => setCustomRepeatType(e.target.value)}
         >
@@ -141,12 +144,21 @@ const CustomRecurrence = ({ setCustomRrule }) => {
             />
             <span>On</span>
           </div>
-          <input
+          {/* <input
             className='border w-full p-1 rounded-lg text-gray-500'
             type='datetime-local'
             value={customEndDate.toISOString().slice(0, 16)}
             onChange={(e) => setCustomEndDate(e.target.value)}
             disabled={customEnds !== "ends"}
+          /> */}
+          <DatePicker
+            selected={customEndDate}
+            onChange={(date) => setCustomEndDate(date)}
+            showTimeSelect
+            timeIntervals={15}
+            timeFormat='HH:mm'
+            dateFormat='yyyy-MM-dd HH:mm'
+            className='border w-full p-1 rounded-lg text-gray-500'
           />
         </div>
         <div className='w-full flex'>
@@ -162,13 +174,13 @@ const CustomRecurrence = ({ setCustomRrule }) => {
           </div>
           <div className='w-full flex flex-row items-center'>
             <input
-              className='border w-full p-1 rounded-lg text-gray-500'
+              className='border w-20 p-1 rounded-lg text-gray-500'
               type='number'
               value={customRecurrenceNo >= 1 ? customRecurrenceNo : 1}
               disabled={customEnds !== "after"}
               onChange={(e) => setCustomRecurrenceNo(e.target.value)}
             />
-            <span className=''> recurrence</span>
+            <span className='text-sm text-gray-500'> recurrence</span>
           </div>
         </div>
       </div>

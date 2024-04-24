@@ -8,7 +8,13 @@ import CustomRecurrence from "@/app/calendar/components/CustomRecurrence";
 import { getRecurrenceRule } from "@/app/calendar/components/calendarFunctions";
 import { addHours } from "date-fns";
 
-const AddEvent = ({ session, setEvents, events }) => {
+const AddEvent = ({
+  session,
+  setEvents,
+  events,
+  createEventOpen,
+  setCreateEventOpen,
+}) => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [startDate, setStartDate] = useState(new Date());
@@ -19,16 +25,11 @@ const AddEvent = ({ session, setEvents, events }) => {
   const [withConference, setWithConference] = useState(false);
   const [recurrence, setRecurrence] = useState("");
   const [customRrule, setCustomRrule] = useState("");
+  const [createLoading, setCreateLoading] = useState(false);
   const [repeatNo, setRepeatNo] = useState(1);
   const [repeatWeek, setRepeakWeek] = useState();
   //regex
   const emailRegex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
-  // useEffect(() => {
-  //   const change = () => {
-  //     console.log(withConference);
-  //   };
-  //   change();
-  // }, [withConference]);
 
   const isValidatedEmail = (email) => {
     const validate = emailRegex.test(email);
@@ -39,27 +40,39 @@ const AddEvent = ({ session, setEvents, events }) => {
     setEvents([...events, newEvent]);
   };
 
-  const handleCreateEvent = async () => {
+  const handleCreateEvent = async (e) => {
+    e.preventDefault();
+    setCreateLoading(true);
     if (session) {
       try {
-        const Rrule = getRecurrenceRule(recurrence, customRrule);
-        const accessToken = session.token.access_token;
-        const newEvent = await createEvent(
-          accessToken,
-          title,
-          description,
-          startDate,
-          endDate,
-          guests,
-          withConference,
-          Rrule
-        );
-        handleUpdateEvent(newEvent);
-        setTitle("");
-        setDescription("");
+        if (title !== "") {
+          const Rrule = getRecurrenceRule(recurrence, customRrule);
+          const accessToken = session.token.access_token;
+          const newEvent = await createEvent(
+            accessToken,
+            title,
+            description,
+            startDate,
+            endDate,
+            guests,
+            withConference,
+            Rrule
+          );
+          console.log("New Event: ", newEvent);
+          handleUpdateEvent(newEvent);
+          setTitle("");
+          setDescription("");
+          setGuestEmail("");
+          setGuests([]);
+          setCreateEventOpen(createEventOpen);
+        } else {
+          alert("Title required.");
+        }
       } catch (error) {
         console.error("Error creating event:", error);
         alert(error.response.data.error.message);
+      } finally {
+        setCreateLoading(false);
       }
     }
   };
@@ -82,16 +95,15 @@ const AddEvent = ({ session, setEvents, events }) => {
     console.log("data", data);
     setCustomRrule(data);
   };
-  // const handleRrule = (data, customUrl) => {
-  //   if (data === "") {
-  //     return "";
-  //   } else {
-  //     const rule = getRecurrenceRule(data, customUrl);
-  //     return rule;
-  //   }
-  // };
-  return (
-    <div className='border p-3 mt-3 rounded-xl w-[500px]'>
+  return createLoading ? (
+    <div className='absolute top-0 left-0 w-full bg-white bg-opacity-50 h-screen flex justify-center items-center'>
+      <div className='border border-gray-500 rounded-md p-2 text-gray-700 bg-gray-400 w-32 h-10 flex justify-end'>
+        Creating
+        <span className='loading loading-dots loading-lg'></span>
+      </div>
+    </div>
+  ) : (
+    <div className='border max-h-screen overflow-y-auto p-3 mt-3 rounded-xl bg-white w-[500px]'>
       <h2 className='text-xl font-semibold text-center'>Create Event</h2>
       <form className='flex flex-col gap-y-2'>
         <div className='w-full flex flex-col'>
@@ -101,6 +113,7 @@ const AddEvent = ({ session, setEvents, events }) => {
             type='text'
             value={title}
             onChange={(e) => setTitle(e.target.value)}
+            required
           />
         </div>
 
@@ -117,11 +130,11 @@ const AddEvent = ({ session, setEvents, events }) => {
           <div className='w-full flex flex-row justify-between items-center pl-2'>
             <label className='w-32'>Start Date:</label>
             {/* <input
-              type='datetime-local'
-              className='border w-full p-1 rounded-lg text-gray-500'
-              value={startDate.toISOString().slice(0, 16)}
-              onChange={(e) => setStartDate(new Date(e.target.value))}
-            /> */}
+          type='datetime-local'
+          className='border w-full p-1 rounded-lg text-gray-500'
+          value={startDate.toISOString().slice(0, 16)}
+          onChange={(e) => setStartDate(new Date(e.target.value))}
+        /> */}
             <DatePicker
               selected={startDate}
               onChange={(date) => setStartDate(date)}
@@ -134,11 +147,11 @@ const AddEvent = ({ session, setEvents, events }) => {
           <div className='w-full flex flex-row justify-between pl-2'>
             <label className='w-32'>End Date:</label>
             {/* <input
-              type='datetime-local'
-              className='border w-full p-1 rounded-lg text-gray-500'
-              value={endDate.toISOString().slice(0, 16)}
-              onChange={(e) => setEndDate(new Date(e.target.value))}
-            /> */}
+          type='datetime-local'
+          className='border w-full p-1 rounded-lg text-gray-500'
+          value={endDate.toISOString().slice(0, 16)}
+          onChange={(e) => setEndDate(new Date(e.target.value))}
+        /> */}
             <DatePicker
               selected={endDate}
               onChange={(date) => setEndDate(date)}
@@ -174,10 +187,17 @@ const AddEvent = ({ session, setEvents, events }) => {
           <label className='font-semibold'>Guests:</label>
           {guests.map((guest, index) => (
             <div key={index} className='flex flex-wrap gap-x-2'>
-              <p className='p-1 border border-gray-500 rounded-xl'>
-                {guest?.email}
-                <button onClick={() => handleGuest(guest)}>-</button>
-              </p>
+              <div className='relative'>
+                <p className='p-1  border border-gray-500 rounded-xl'>
+                  {guest?.email}
+                </p>
+                <button
+                  className='absolute -top-2 right-0 bg-orange-600 p-0 text-[10px] w-3 h-3 flex items-center justify-center rounded-md'
+                  onClick={() => handleGuest(guest)}
+                >
+                  x
+                </button>
+              </div>
             </div>
           ))}
           <div className='w-full flex gap-x-2'>
@@ -201,19 +221,29 @@ const AddEvent = ({ session, setEvents, events }) => {
         <div className='w-full flex flex-row gap-x-2'>
           <input
             name='Conference status'
+            className='bg-blue-500'
             value={withConference}
             onChange={() => setWithConference(!withConference)}
             type='checkbox'
           />
           <p>Enable Conference</p>
         </div>
-        <button
-          className='border p-3 rounded-xl'
-          type='button'
-          onClick={handleCreateEvent}
-        >
-          Create Event
-        </button>
+        <div className='w-full flex flex-row justify-between'>
+          <button
+            className='border p-3 rounded-xl hover:bg-blue-600  hover:text-white transition-all'
+            type='submit'
+            onClick={(e) => handleCreateEvent(e)}
+          >
+            Create Event
+          </button>
+          <button
+            className='border p-3 rounded-xl hover:bg-gray-300 transition-all'
+            type='button'
+            onClick={() => setCreateEventOpen(createEventOpen)}
+          >
+            Cancel
+          </button>
+        </div>
       </form>
     </div>
   );
