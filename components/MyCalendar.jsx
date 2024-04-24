@@ -16,6 +16,7 @@ import {
   addMonths,
   endOfDay,
   addHours,
+  addDays,
 } from "date-fns";
 import ViewEvent from "@/app/calendar/components/ViewEvent";
 const localizer = momentLocalizer(moment);
@@ -168,6 +169,7 @@ const MyCalendar = () => {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const [eventToday, setEventToday] = useState([]);
+  const [upcomingEvents, setUpcomingEvents] = useState([]);
   // Filter events today
   useEffect(() => {
     if (filteredEvents) {
@@ -182,8 +184,26 @@ const MyCalendar = () => {
           eventEnd.getTime() >= today.getTime()
         );
       });
-      console.log("Event Today: ", eventsToday);
       setEventToday(eventsToday);
+      const upcomingEvents = filteredEvents.filter((event) => {
+        const eventStart = new Date(event.start);
+        eventStart.setHours(0, 0, 0, 0);
+        const eventEnd = new Date(event.end);
+        eventEnd.setHours(0, 0, 0, 0);
+
+        // Check if event occurs within the next week
+        const nextWeek = addDays(today, 7);
+        const dateToday = addDays(today, 1);
+        return (
+          eventStart.getTime() >= dateToday.getTime() &&
+          eventStart.getTime() <= nextWeek.getTime()
+        );
+      });
+      const sortedEvents = upcomingEvents.sort(
+        (a, b) => new Date(a.start) - new Date(b.start)
+      );
+      console.log(sortedEvents);
+      setUpcomingEvents(sortedEvents);
     }
   }, [filteredEvents]);
 
@@ -242,12 +262,12 @@ const MyCalendar = () => {
         </div>
         <p className='text-lg font-semibold'>Event today:</p>
         {eventToday.length > 0 ? (
-          <div className='flex w-full flex-col'>
+          <div className='flex w-full flex-col h-auto max-h-[500px] overflow-y-auto'>
             {eventToday.map((event) => (
               <div
                 key={event.id}
                 onClick={() => handleSelectEvent(event)}
-                className='hover:cursor-pointer w-full max-h-full overflow-y-auto p-2 flex flex-col '
+                className='hover:cursor-pointer w-full p-1 flex flex-col '
               >
                 <div
                   className={`w-full flex flex-col rounded-md p-2 ${
@@ -258,11 +278,13 @@ const MyCalendar = () => {
                       : "bg-[#928e8e]"
                   }`}
                 >
-                  <p className='text-gray-700'>{event.title}</p>
-                  <p className='text-[12px] text-gray-600'>
+                  <p className='text-gray-700 text-[12px] font-semibold'>
+                    {event.title}
+                  </p>
+                  <p className='text-[10px] text-gray-600'>
                     Start: {format(event.start, "hh:mm a")}
                   </p>
-                  <p className='text-[12px] text-gray-600'>
+                  <p className='text-[10px] text-gray-600'>
                     End: {format(event.end, "hh:mm a")}
                   </p>
                 </div>
@@ -271,6 +293,37 @@ const MyCalendar = () => {
           </div>
         ) : (
           <div className='w-full p-2 text-gray-700'>No event for today.</div>
+        )}
+        <p className='text-lg font-semibold'>Upcoming Events:</p>
+        {upcomingEvents.length > 0 ? (
+          <div className='flex w-full flex-col h-auto max-h-full overflow-y-auto'>
+            {upcomingEvents.map((event) => (
+              <div
+                key={event.id}
+                onClick={() => handleSelectEvent(event)}
+                className='hover:cursor-pointer w-full p-2 flex flex-col '
+              >
+                <div
+                  className={`w-full flex flex-col rounded-md p-2 ${
+                    event.type === "Holidays in Philippines"
+                      ? "bg-[#32449c] bg-opacity-50"
+                      : event.type === "Holidays in Australia"
+                      ? "bg-[#f28f33]"
+                      : "bg-[#928e8e]"
+                  }`}
+                >
+                  <p className='text-gray-700 text-[12px] font-semibold'>
+                    {event.title}
+                  </p>
+                  <p className='text-[10px] text-gray-600'>
+                    {format(event.start, "MMMM yyyy dd hh:mm a")}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className='w-full p-2 text-gray-700'>No Upcoming event.</div>
         )}
       </div>
       <div className='w-full p-5 flex max-h-screen justify-center items-center flex-col'>
