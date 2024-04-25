@@ -23,6 +23,7 @@ const AddEvent = ({
   const [guestEmail, setGuestEmail] = useState("");
   const [guests, setGuests] = useState([]);
   const [withConference, setWithConference] = useState(false);
+  const [withAMeet, setWithAMeet] = useState(false);
   const [recurrence, setRecurrence] = useState("");
   const [customRrule, setCustomRrule] = useState("");
   const [createLoading, setCreateLoading] = useState(false);
@@ -56,7 +57,8 @@ const AddEvent = ({
             endDate,
             guests,
             withConference,
-            Rrule
+            Rrule,
+            withAMeet
           );
           console.log("New Event: ", newEvent);
           handleUpdateEvent(newEvent);
@@ -65,6 +67,8 @@ const AddEvent = ({
           setGuestEmail("");
           setGuests([]);
           setCreateEventOpen(createEventOpen);
+          setWithAMeet(false);
+          setWithConference(false);
         } else {
           alert("Title required.");
         }
@@ -226,7 +230,17 @@ const AddEvent = ({
             onChange={() => setWithConference(!withConference)}
             type='checkbox'
           />
-          <p>Enable Conference</p>
+          <p>Enable G-Meet</p>
+        </div>
+        <div className='w-full flex flex-row gap-x-2'>
+          <input
+            name='Conference status'
+            className='bg-blue-500'
+            value={withAMeet}
+            onChange={() => setWithAMeet(!withAMeet)}
+            type='checkbox'
+          />
+          <p>Enable Aretex Meet</p>
         </div>
         <div className='w-full flex flex-row justify-between'>
           <button

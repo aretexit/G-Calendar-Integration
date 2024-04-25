@@ -262,7 +262,7 @@ const MyCalendar = () => {
         </div>
         <p className='text-lg font-semibold'>Event today:</p>
         {eventToday.length > 0 ? (
-          <div className='flex w-full flex-col h-auto max-h-[500px] overflow-y-auto'>
+          <div className='flex w-full flex-col max-h-full overflow-y-auto'>
             {eventToday.map((event) => (
               <div
                 key={event.id}
@@ -296,7 +296,7 @@ const MyCalendar = () => {
         )}
         <p className='text-lg font-semibold'>Upcoming Events:</p>
         {upcomingEvents.length > 0 ? (
-          <div className='flex w-full flex-col h-auto max-h-full overflow-y-auto'>
+          <div className='flex w-full flex-col h-auto max-h-[500px] overflow-y-auto'>
             {upcomingEvents.map((event) => (
               <div
                 key={event.id}

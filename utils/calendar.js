@@ -81,9 +81,11 @@ export async function createEvent(
   endData,
   guests,
   withConference,
-  Rrule
+  Rrule,
+  withAMeet
 ) {
   try {
+    console.log("withConference: ", withConference);
     let newDescription = description;
     let conferenceID = "";
     let aretexMeet =
@@ -91,9 +93,11 @@ export async function createEvent(
     // console.log("UUID: ", conferenceID);
     if (withConference) {
       conferenceID = uuid();
-      newDescription = `${newDescription} \n${aretexMeet}`;
     } else {
       conferenceID = "";
+    }
+    if (withAMeet) {
+      newDescription = `${newDescription} \n${aretexMeet}`;
     }
 
     const response = await axios.post(
@@ -110,12 +114,12 @@ export async function createEvent(
           timeZone: "Australia/Sydney",
         },
         attendees: guests.map((guest) => ({ email: guest.email })),
-        // conferenceData: {
-        //   createRequest: {
-        //     requestId: conferenceID,
-        //     conferenceSolutionKey: { type: "hangoutsMeet" },
-        //   },
-        // },
+        conferenceData: {
+          createRequest: {
+            requestId: conferenceID,
+            conferenceSolutionKey: { type: "hangoutsMeet" },
+          },
+        },
         reminders: {
           useDefault: true,
         },
